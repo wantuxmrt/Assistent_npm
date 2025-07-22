@@ -1,0 +1,32 @@
+:root {
+  --bg-color: #0f1b2d;
+  --panel-bg: #1a2b40;
+  --primary: #4a8cff;
+  --secondary: #6b4dff;
+  --accent: #ff6b8b;
+  --text: #e6f1ff;
+  --success: #4ade80;
+  --warning: #facc15;
+  --error: #ff6b6b;
+  --bubble-user: #2a4365;
+  --bubble-bot: #1e3a5f;
+  --edit-color: #facc15;
+  --search-bg: rgba(30, 58, 95, 0.7);
+  --card-bg: rgba(30, 58, 95, 0.5);
+  --filter-bg: rgba(23, 43, 69, 0.8);
+  --divider: rgba(74, 140, 255, 0.2);
+  --critical: #ff6b6b;
+  --high: #ff9e6b;
+  --medium: #facc15;
+  --low: #4ade80;
+  --table-header: #1a2e4a;
+  --table-row: rgba(30, 58, 95, 0.3);
+  --manager-color: #9b5de5;
+}
+
+body {
+  background: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(23, 43, 69, 0.5) 0%, transparent 30%),
+    radial-gradient(circle at 90% 80%, rgba(74, 140, 255, 0.1) 0%, transparent 40%);
+}

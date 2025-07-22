@@ -1,0 +1,14 @@
+node_modules
+build
+coverage
+dist
+.DS_Store
+.env
+.git
+.gitignore
+.vscode
+.idea
+npm-debug.log
+yarn-error.log
+test
+storybook-static
