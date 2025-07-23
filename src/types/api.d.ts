@@ -81,3 +81,22 @@ export interface ApiError {
   status: number;
   errors?: Record<string, string[]>;
 }
+
+// src/types/api.d.ts
+export interface Request {
+  id: number;
+  title: string;
+  description: string;
+  system: '1c' | 'mis';
+  status: 'new' | 'in-progress' | 'resolved' | 'reopened';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  created: string;
+}
+
+// Изменяем тип в файле src/types/api.d.ts
+export interface RequestFormData {
+  title: string;
+  description: string;
+  attachments: string[];
+  files?: File[]; // Добавляем необязательное свойство
+}

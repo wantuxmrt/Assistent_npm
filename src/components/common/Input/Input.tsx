@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './Input.module.css';
 
-interface InputProps {
+export interface InputProps {
   type?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

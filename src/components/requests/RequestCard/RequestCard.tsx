@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './RequestCard.module.css';
-import { Request } from '@/types';
+import { Request } from '../../../types/api';
 
 interface RequestCardProps {
   request: Request;

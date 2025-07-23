@@ -30,3 +30,34 @@
 .icon {
   font-size: 16px;
 }
+
+
+
+
+.tab {
+  padding: 12px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #333;
+  background-color: #f0f0f0;
+}
+
+.tab.active {
+  color: #1976d2;
+  border-bottom-color: #1976d2;
+}
+
+.icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}

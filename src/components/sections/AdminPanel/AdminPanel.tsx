@@ -7,13 +7,24 @@ import Select from '../../common/Select/Select';
 import RequestTable from '../../requests/RequestTable/RequestTable';
 import styles from './AdminPanel.module.css';
 
+// Temporary interface to extend Request with userId
+interface ExtendedRequest extends Request {
+  userId: number;
+}
+
 const AdminPanel = () => {
-  const { state, updateTicket, getUsers } = useAppContext();
+  const { 
+    tickets, 
+    currentUser,
+    getUsers,
+    updateUser 
+  } = useAppContext();
+  
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editUser, setEditUser] = useState<User | null>(null);
   const [viewRequestsUserId, setViewRequestsUserId] = useState<number | null>(null);
-  const [userRequests, setUserRequests] = useState<Request[]>([]);
+  const [userRequests, setUserRequests] = useState<ExtendedRequest[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -33,34 +44,31 @@ const AdminPanel = () => {
   }, []);
 
   const handleViewRequests = useCallback(async (userId: number) => {
-    const requests = state.tickets.filter(t => t.userId === userId);
-    setUserRequests(requests);
+    const requests = tickets.filter(t => 'userId' in t && (t as ExtendedRequest).userId === userId);
+    setUserRequests(requests as ExtendedRequest[]);
     setViewRequestsUserId(userId);
     setEditUser(null);
-  }, [state.tickets]);
+  }, [tickets]);
 
   const handleToggleUserStatus = useCallback(async (user: User) => {
-    await updateTicket({
-      ...user,
-      active: !user.active
-    });
+    await updateUser(user.id, { ...user, active: !user.active });
     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, active: !u.active } : u));
-  }, [updateTicket]);
+  }, [updateUser]);
 
   const handleSaveUser = useCallback(async () => {
     if (!editUser) return;
     
-    await updateTicket(editUser);
+    await updateUser(editUser.id, editUser);
     setUsers(prev => prev.map(u => u.id === editUser.id ? editUser : u));
     setEditUser(null);
-  }, [editUser, updateTicket]);
+  }, [editUser, updateUser]);
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm) || 
     user.email.toLowerCase().includes(searchTerm)
   );
 
-  if (state.currentUser?.role !== 'admin') {
+  if (currentUser?.role !== 'admin') {
     return (
       <div className={styles.adminDenied}>
         <i className={`fas fa-ban ${styles.deniedIcon}`}></i>
@@ -75,8 +83,7 @@ const AdminPanel = () => {
       <div className={styles.section}>
         <h3>Управление запросами</h3>
         <RequestTable 
-          requests={state.tickets} 
-          showActions={true} 
+          requests={tickets} 
           onRowClick={() => {}} 
         />
       </div>
@@ -106,7 +113,6 @@ const AdminPanel = () => {
             </Button>
             <RequestTable 
               requests={userRequests} 
-              showActions={true} 
               onRowClick={() => {}} 
             />
           </div>
@@ -129,6 +135,7 @@ const AdminPanel = () => {
                 type="email"
                 value={editUser.email}
                 disabled
+                onChange={() => {}} // Required prop
               />
             </div>
             <div className={styles.formGroup}>
@@ -193,7 +200,7 @@ const AdminPanel = () => {
                     </Button>
                     <Button 
                       size="small"
-                      variant={user.active ? 'danger' : 'success'}
+                      variant={user.active ? 'error' : 'success'}
                       onClick={() => handleToggleUserStatus(user)}
                       icon={user.active ? 'lock' : 'unlock'}
                     >

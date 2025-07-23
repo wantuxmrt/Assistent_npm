@@ -1,6 +1,6 @@
 import React, { useState, useCallback, ChangeEvent } from 'react';
 import styles from './RequestForm.module.css';
-import { RequestFormData } from '@/types';
+import { RequestFormData } from '../../../types/api';
 
 interface RequestFormProps {
   initialData?: RequestFormData;
@@ -25,7 +25,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: RequestFormData) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +34,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
       setFiles(prev => [...prev, ...newFiles]);
       
       const fileNames = newFiles.map(file => file.name);
-      setFormData(prev => ({
+      setFormData((prev: RequestFormData) => ({
         ...prev,
         attachments: [...prev.attachments, ...fileNames]
       }));
@@ -46,7 +46,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
     newFiles.splice(index, 1);
     setFiles(newFiles);
     
-    setFormData(prev => ({
+    setFormData((prev: RequestFormData) => ({
       ...prev,
       attachments: newFiles.map(file => file.name)
     }));
@@ -54,10 +54,14 @@ const RequestForm: React.FC<RequestFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    
+    // Создаем данные для отправки с файлами
+    const submitData: RequestFormData = {
       ...formData,
-      files // Добавляем объекты файлов для последующей загрузки
-    });
+      files
+    };
+    
+    onSubmit(submitData);
   };
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -69,7 +73,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
       setFiles(prev => [...prev, ...newFiles]);
       
       const fileNames = newFiles.map(file => file.name);
-      setFormData(prev => ({
+      setFormData((prev: RequestFormData) => ({
         ...prev,
         attachments: [...prev.attachments, ...fileNames]
       }));

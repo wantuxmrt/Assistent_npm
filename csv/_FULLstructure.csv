@@ -27,6 +27,11 @@
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── common/
+│   │   │   ├── AppHeader/
+│   │   │   │   ├── AppHeader.tsx
+│   │   │   │   ├── AppHeader.module.css
+│   │   │   │   ├── AppHeader.stories.tsx
+│   │   │   │   └── AppHeader.test.tsx
 │   │   │   ├── Button/
 │   │   │   │   ├── Button.tsx
 │   │   │   │   ├── Button.module.css
@@ -44,6 +49,12 @@
 │   │   │   │   ├── Tab.module.css
 │   │   │   │   ├── Tab.stories.tsx
 │   │   │   │   └── Tab.test.tsx
+│   │   │   │
+│   │   │   ├── TabsNavigation/
+│   │   │   │   ├── TabsNavigation.tsx
+│   │   │   │   ├── TabsNavigation.module.css
+│   │   │   │   ├── TabsNavigation.stories.tsx
+│   │   │   │   └── TabsNavigation.test.tsx
 │   │   │   │
 │   │   │   ├── Input/
 │   │   │   │   ├── Input.tsx
@@ -118,12 +129,6 @@
 │   │   │   │   └── ProfileSection.test.tsx
 │   │   │   │
 │   │   │   └── index.ts
-│   │   │
-│   │   ├── AppHeader/
-│   │   │   ├── AppHeader.tsx
-│   │   │   ├── AppHeader.module.css
-│   │   │   ├── AppHeader.stories.tsx
-│   │   │   └── AppHeader.test.tsx
 │   │   │
 │   │   └── index.ts
 │   │

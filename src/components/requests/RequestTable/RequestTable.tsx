@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './RequestTable.module.css';
-import { Request } from '@/types';
+ import { Request } from '../../../types/api';
 
 interface RequestTableProps {
   requests: Request[];

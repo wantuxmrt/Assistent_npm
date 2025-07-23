@@ -1,6 +1,6 @@
 import React from 'react';
-import { Meta, Story } from '@storybook/react';
-import Select, { SelectProps } from './Select';
+import { Meta, StoryFn } from '@storybook/react'; // Changed Story to StoryFn
+import Select, { SelectProps } from './Select'; // Fixed SelectProps import
 
 export default {
   title: 'Common/Select',
@@ -19,7 +19,7 @@ const options = [
   { value: 'option3', label: 'Option 3' },
 ];
 
-const Template: Story<SelectProps> = (args) => <Select {...args} options={options} />;
+const Template: StoryFn<SelectProps> = (args) => <Select {...args} options={options} />;
 
 export const Default = Template.bind({});
 Default.args = {

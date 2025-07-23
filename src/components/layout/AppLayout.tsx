@@ -1,7 +1,7 @@
 // Файл: src/components/layout/AppLayout.tsx
 import React from 'react';
-import AppHeader from '../AppHeader';
-import TabsNavigation from '../TabsNavigation';
+import AppHeader from '../common/AppHeader/AppHeader'; // Исправленный путь
+import TabsNavigation from '../common/TabsNavigation/TabsNavigation'; // Исправленный путь
 import { useLocation } from 'react-router-dom';
 
 interface AppLayoutProps {

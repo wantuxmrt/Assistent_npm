@@ -1,12 +1,12 @@
 import React from 'react';
 import styles from './Select.module.css';
 
-interface SelectOption {
+export interface SelectOption { // Added export
   value: string;
   label: string;
 }
 
-interface SelectProps {
+export interface SelectProps { // Added export
   options: SelectOption[];
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Meta, Story } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import Tab, { TabProps } from './Tab';
 
 export default {
@@ -11,7 +11,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<TabProps> = (args) => <Tab {...args} />;
+const Template: StoryFn<TabProps> = (args) => <Tab {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

@@ -1,5 +1,7 @@
 import React from 'react';
-import { Meta, Story } from '@storybook/react';
+// Use StoryFn instead of Story
+import { Meta, StoryFn } from '@storybook/react';
+// Import CheckboxProps as named export
 import Checkbox, { CheckboxProps } from './Checkbox';
 
 export default {
@@ -10,9 +12,15 @@ export default {
     disabled: { control: 'boolean' },
     onChange: { action: 'changed' },
   },
-} as Meta;
+  // Add default args for required props
+  args: {
+    checked: false,
+    onChange: () => {},
+  },
+} as Meta<typeof Checkbox>;
 
-const Template: Story<CheckboxProps> = (args) => <Checkbox {...args} />;
+// Use StoryFn<CheckboxProps> instead of Story<CheckboxProps>
+const Template: StoryFn<CheckboxProps> = (args) => <Checkbox {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
