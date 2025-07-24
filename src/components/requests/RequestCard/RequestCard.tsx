@@ -1,13 +1,14 @@
 import React from 'react';
 import styles from './RequestCard.module.css';
-import { Request } from '../../../types/api';
+import { Ticket } from '@/types';
 
 interface RequestCardProps {
-  request: Request;
+  request: Ticket;
   onClick: () => void;
+  className?: string;
 }
 
-const RequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
+const RequestCard: React.FC<RequestCardProps> = ({ request, onClick, className }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ru-RU', {
       day: '2-digit',
@@ -18,7 +19,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
     });
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: Ticket['status']) => {
     switch (status) {
       case 'new': return 'Новый';
       case 'in-progress': return 'В работе';
@@ -28,7 +29,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
     }
   };
 
-  const getPriorityText = (priority: string) => {
+  const getPriorityText = (priority: Ticket['priority']) => {
     switch (priority) {
       case 'critical': return 'Критический';
       case 'high': return 'Высокий';
@@ -39,7 +40,10 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   };
 
   return (
-    <div className={styles.card} onClick={onClick}>
+    <div 
+      className={`${styles.card} ${className || ''}`} 
+      onClick={onClick}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.requestId}>#TS-{request.id.toString().padStart(4, '0')}</div>
         <div className={`${styles.system} ${request.system === '1c' ? styles.system1c : styles.systemMis}`}>

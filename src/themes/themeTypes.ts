@@ -39,6 +39,10 @@ export interface Theme {
     tablet: string;
     mobile: string;
   };
+  fonts: {
+    main: string;
+    header: string;
+  };
 }
 
 export type ThemeName = 'light' | 'dark';

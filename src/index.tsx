@@ -1,24 +1,26 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
-import { store } from './store/store';
+import store from './store/store';
 import App from './App';
-import { GlobalStyles } from './assets/styles/global';
-import { darkTheme } from './themes/darkTheme';
+import './assets/styles/global.css';
 import reportWebVitals from './reportWebVitals';
+import { ThemeProvider } from './themes/ThemeProvider';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+// Исправление ошибки типов для react-dom/client
+declare module 'react-dom/client' {
+  function createRoot(container: Element | DocumentFragment, options?: RootOptions): Root;
+}
+
+const container = document.getElementById('root') as HTMLElement;
+const root = createRoot(container);
 
 root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <ThemeProvider theme={darkTheme}>
-          <GlobalStyles />
+        <ThemeProvider>
           <App />
         </ThemeProvider>
       </BrowserRouter>

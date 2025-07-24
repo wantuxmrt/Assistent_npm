@@ -8,13 +8,14 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: (email: string, password: string) => void;
-  onRegister: (userData: {
-    email: string;
-    password: string;
-    role: string;
-    organization: string;
-    department: string;
-  }) => void;
+  onRegister: (
+    email: string,
+    password: string,
+    role: string,
+    organization: string,
+    department: string,
+    name: string
+  ) => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ 
@@ -26,6 +27,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState(''); // Добавлено поле имени
   const [role, setRole] = useState('user');
   const [organization, setOrganization] = useState('org1');
   const [department, setDepartment] = useState('dep1');
@@ -34,7 +36,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    // Проверка обязательных полей
+    if (!email || !password || (!isLoginMode && !name)) {
       setError('Пожалуйста, заполните все поля');
       return;
     }
@@ -47,7 +50,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
       
-      onRegister({ email, password, role, organization, department });
+      // Исправлено: вызов функции вместо объявления типа
+      onRegister(email, password, role, organization, department, name);
     }
     
     resetForm();
@@ -56,6 +60,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setName('');
     setRole('user');
     setOrganization('org1');
     setDepartment('dep1');
@@ -86,6 +91,20 @@ const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
+          {!isLoginMode && (
+            <div className={styles.formGroup}>
+              <label>
+                Имя
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ваше имя"
+                />
+              </label>
+            </div>
+          )}
+          
           <div className={styles.formGroup}>
             <label>
               Email
@@ -117,7 +136,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   Роль
                   <Select
                     value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    onChange={setRole}
                     options={[
                       { value: 'user', label: 'Пользователь' },
                       { value: 'support', label: 'Поддержка' },
@@ -133,7 +152,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   Организация
                   <Select
                     value={organization}
-                    onChange={(e) => setOrganization(e.target.value)}
+                    onChange={setOrganization}
                     options={[
                       { value: 'org1', label: 'Организация 1' },
                       { value: 'org2', label: 'Организация 2' },
@@ -148,7 +167,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   Отдел
                   <Select
                     value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
+                    onChange={setDepartment}
                     options={[
                       { value: 'dep1', label: 'Отдел поддержки' },
                       { value: 'dep2', label: 'Бухгалтерия' },

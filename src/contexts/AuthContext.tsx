@@ -1,23 +1,29 @@
-// Файл: src/contexts/AuthContext.tsx
-import React, { createContext, useContext } from 'react';
-import useAuth from '../hooks/useAuth';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { User } from '../types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userRole: string | null;
   userName: string;
-  userId: string;
+  userId: number;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const auth = useAuth();
+  
+  // Convert userId to number
+  const authWithNumberId = {
+    ...auth,
+    userId: Number(auth.userId)
+  };
 
   return (
-    <AuthContext.Provider value={auth}>
+    <AuthContext.Provider value={authWithNumberId as AuthContextType}>
       {children}
     </AuthContext.Provider>
   );

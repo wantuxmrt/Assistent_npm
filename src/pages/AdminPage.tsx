@@ -1,22 +1,24 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { AdminPanel } from '@/components/sections/AdminPanel';
-import { ModerationPanel } from '@/components/sections/ModerationPanel';
+import { AdminPanel } from '@/components/sections'; // Исправленный импорт
+import { ModerationPanel } from '@/components/sections'; // Исправленный импорт
 import styles from './AdminPage.module.css';
+import { useNavigate } from 'react-router-dom'; // Добавим редирект
 
 const AdminPage = () => {
   const { user, isAuthenticated, checkPermission } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (!isAuthenticated) {
-      // Редирект на страницу входа
+      navigate('/login'); // Редирект на страницу входа
       return;
     }
     
     if (!checkPermission('admin')) {
-      // Редирект на главную с сообщением об ошибке
+      navigate('/', { state: { error: 'Доступ запрещен' } }); // Редирект с сообщением
     }
-  }, [isAuthenticated, checkPermission]);
+  }, [isAuthenticated, checkPermission, navigate]);
 
   if (!user || !checkPermission('admin')) {
     return (

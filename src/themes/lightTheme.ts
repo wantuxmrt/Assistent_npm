@@ -41,6 +41,10 @@ const lightTheme: Theme = {
     tablet: '768px',
     mobile: '480px',
   },
+  fonts: {
+    main: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+    header: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+  },
 };
 
 export default lightTheme;

@@ -1,19 +1,19 @@
 import React from 'react';
 import styles from './Select.module.css';
 
-export interface SelectOption { // Added export
+export type SelectOption = {
   value: string;
   label: string;
-}
+};
 
-export interface SelectProps { // Added export
+export type SelectProps = {
   options: SelectOption[];
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
-}
+};
 
 const Select: React.FC<SelectProps> = ({
   options,
@@ -23,11 +23,15 @@ const Select: React.FC<SelectProps> = ({
   className = '',
   disabled = false,
 }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(e.target.value);
+  };
+
   return (
     <select
       className={`${styles.select} ${className}`}
       value={value}
-      onChange={onChange}
+      onChange={handleChange}
       disabled={disabled}
     >
       {placeholder && (

@@ -1,38 +1,45 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAppContext } from '../../../contexts/AppContext';
-import { User, Request } from '../../../types';
+import { useAppContext } from '../../../contexts';
+import { User, Ticket, Role } from '../../../types';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
 import Select from '../../common/Select/Select';
 import RequestTable from '../../requests/RequestTable/RequestTable';
 import styles from './AdminPanel.module.css';
-
-// Temporary interface to extend Request with userId
-interface ExtendedRequest extends Request {
-  userId: number;
-}
+import { usersAPI, requestsAPI } from '../../../services/api';
 
 const AdminPanel = () => {
   const { 
-    tickets, 
     currentUser,
-    getUsers,
-    updateUser 
+    logout
   } = useAppContext();
   
   const [users, setUsers] = useState<User[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editUser, setEditUser] = useState<User | null>(null);
   const [viewRequestsUserId, setViewRequestsUserId] = useState<number | null>(null);
-  const [userRequests, setUserRequests] = useState<ExtendedRequest[]>([]);
+  const [userRequests, setUserRequests] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await getUsers();
-      setUsers(users);
+    const fetchData = async () => {
+      try {
+        const ticketsData = await requestsAPI.getAllRequests();
+        setTickets(ticketsData as Ticket[]);
+        
+        const usersData = await usersAPI.getAllUsers();
+        setUsers(usersData as User[]);
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        if ((error as any).response?.status === 401) logout();
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchUsers();
-  }, [getUsers]);
+
+    fetchData();
+  }, [logout]);
 
   const handleUserSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.toLowerCase());
@@ -43,25 +50,45 @@ const AdminPanel = () => {
     setViewRequestsUserId(null);
   }, []);
 
-  const handleViewRequests = useCallback(async (userId: number) => {
-    const requests = tickets.filter(t => 'userId' in t && (t as ExtendedRequest).userId === userId);
-    setUserRequests(requests as ExtendedRequest[]);
+  const handleViewRequests = useCallback((userId: number) => {
+    const requests = tickets.filter(t => t.userId === userId);
+    setUserRequests(requests);
     setViewRequestsUserId(userId);
     setEditUser(null);
   }, [tickets]);
 
   const handleToggleUserStatus = useCallback(async (user: User) => {
-    await updateUser(user.id, { ...user, active: !user.active });
-    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, active: !u.active } : u));
-  }, [updateUser]);
+    try {
+      setUsers(prev => prev.map(u => 
+        u.id === user.id ? { ...u, active: !u.active } : u
+      ));
+      
+      await usersAPI.toggleUserStatus(user.id, !user.active);
+    } catch (error) {
+      console.error('Ошибка изменения статуса:', error);
+      setUsers(prev => prev.map(u => 
+        u.id === user.id ? { ...u, active: user.active } : u
+      ));
+    }
+  }, []);
 
   const handleSaveUser = useCallback(async () => {
     if (!editUser) return;
     
-    await updateUser(editUser.id, editUser);
-    setUsers(prev => prev.map(u => u.id === editUser.id ? editUser : u));
-    setEditUser(null);
-  }, [editUser, updateUser]);
+    try {
+      const updatedUser = await usersAPI.updateUser(editUser.id, {
+        name: editUser.name,
+        role: editUser.role
+      });
+      
+      setUsers(prev => prev.map(u => 
+        u.id === (updatedUser as User).id ? (updatedUser as User) : u
+      ));
+      setEditUser(null);
+    } catch (error) {
+      console.error('Ошибка сохранения пользователя:', error);
+    }
+  }, [editUser]);
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm) || 
@@ -76,6 +103,10 @@ const AdminPanel = () => {
         <p>У вас недостаточно прав для просмотра этого раздела</p>
       </div>
     );
+  }
+
+  if (loading) {
+    return <div className={styles.loading}>Загрузка данных...</div>;
   }
 
   return (
@@ -135,14 +166,14 @@ const AdminPanel = () => {
                 type="email"
                 value={editUser.email}
                 disabled
-                onChange={() => {}} // Required prop
+                onChange={() => {}}
               />
             </div>
             <div className={styles.formGroup}>
               <label>Роль:</label>
               <Select 
                 value={editUser.role}
-                onChange={(e) => setEditUser({...editUser, role: e.target.value as any})}
+                onChange={(value) => setEditUser({...editUser, role: value as Role})}
                 options={[
                   { value: 'user', label: 'Пользователь' },
                   { value: 'support', label: 'Поддержка' },

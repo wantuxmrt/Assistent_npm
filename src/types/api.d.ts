@@ -38,28 +38,28 @@ export interface UserUpdateRequest {
 
 // Tickets API
 export interface TicketCreateRequest {
-  system: string;
+  system: '1c' | 'mis';
   category: string;
   title: string;
   description: string;
-  priority: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
   subcategory?: string;
   attachments: string[];
 }
 
 export interface TicketUpdateRequest {
   id: number;
-  status?: string;
-  priority?: string;
+  status?: 'new' | 'in-progress' | 'resolved' | 'reopened';
+  priority?: 'critical' | 'high' | 'medium' | 'low';
   assignedTo?: number | null;
   title?: string;
   description?: string;
 }
 
 export interface TicketFilterParams {
-  system?: string;
-  status?: string;
-  priority?: string;
+  system?: '1c' | 'mis';
+  status?: 'new' | 'in-progress' | 'resolved' | 'reopened';
+  priority?: 'critical' | 'high' | 'medium' | 'low';
   search?: string;
   userId?: number;
 }
@@ -82,21 +82,31 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-// src/types/api.d.ts
-export interface Request {
-  id: number;
-  title: string;
-  description: string;
-  system: '1c' | 'mis';
-  status: 'new' | 'in-progress' | 'resolved' | 'reopened';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  created: string;
-}
-
-// Изменяем тип в файле src/types/api.d.ts
 export interface RequestFormData {
   title: string;
   description: string;
   attachments: string[];
-  files?: File[]; // Добавляем необязательное свойство
+  files?: File[];
+}
+
+// Request 
+export interface Ticket {
+  id: number;
+  system: '1c' | 'mis';
+  category: string;
+  title: string;
+  description: string;
+  status: 'new' | 'in-progress' | 'resolved' | 'reopened';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  created: string;
+  userId: number;
+  assignedTo: number | null; // Добавлена поддержка null
+  comments: Comment[];
+  attachments: string[];
+}
+
+export interface Comment {
+  author: string;
+  time: string;
+  text: string;
 }

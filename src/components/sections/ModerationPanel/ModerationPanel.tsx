@@ -3,26 +3,34 @@ import { useAppContext } from '../../../contexts/AppContext';
 import RequestTable from '../../requests/RequestTable/RequestTable';
 import Button from '../../common/Button/Button';
 import styles from './ModerationPanel.module.css';
+import { User, Ticket } from '../../../types';
 
 const ModerationPanel = () => {
-  const { state, getUsersInSameOrganization } = useAppContext();
-  const [departmentRequests, setDepartmentRequests] = React.useState<any[]>([]);
+  const { currentUser, users, requests: tickets } = useAppContext();
+  const [departmentRequests, setDepartmentRequests] = React.useState<Ticket[]>([]);
 
+  // Get users in same organization
+  const getUsersInSameOrganization = useCallback(() => {
+    if (!currentUser?.organization) return [];
+    return users.filter(user => user.organization === currentUser.organization);
+  }, [currentUser, users]);
+
+  // Load department requests
   const loadDepartmentRequests = useCallback(() => {
-    if (!state.currentUser) return;
+    if (!currentUser) return;
     
     const usersInDept = getUsersInSameOrganization();
     const userIds = usersInDept.map(u => u.id);
-    const requests = state.tickets.filter(t => userIds.includes(t.userId));
+    const requests = tickets.filter(t => userIds.includes(t.userId));
     
     setDepartmentRequests(requests);
-  }, [state.currentUser, state.tickets, getUsersInSameOrganization]);
+  }, [currentUser, tickets, getUsersInSameOrganization]);
 
   React.useEffect(() => {
     loadDepartmentRequests();
   }, [loadDepartmentRequests]);
 
-  if (state.currentUser?.role !== 'manager') {
+  if (currentUser?.role !== 'manager') {
     return (
       <div className={styles.accessDenied}>
         <i className="fas fa-ban"></i>
@@ -39,7 +47,7 @@ const ModerationPanel = () => {
           <i className="fas fa-user-tie"></i> Панель модерации
         </h2>
         <p>
-          Запросы сотрудников вашего отдела: {state.currentUser.department}
+          Запросы сотрудников вашего отдела: {currentUser.department}
         </p>
       </div>
       
@@ -54,7 +62,6 @@ const ModerationPanel = () => {
       
       <RequestTable 
         requests={departmentRequests} 
-        showActions={true}
         onRowClick={(request) => console.log('Request clicked', request)}
       />
       

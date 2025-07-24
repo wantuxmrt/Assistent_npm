@@ -1,6 +1,7 @@
 import React from 'react';
-import { Meta, StoryFn } from '@storybook/react'; // Changed Story to StoryFn
-import Select, { SelectProps } from './Select'; // Fixed SelectProps import
+import { Meta, StoryFn } from '@storybook/react';
+import Select from './Select';
+import type { SelectProps } from './Select';
 
 export default {
   title: 'Common/Select',
@@ -11,7 +12,7 @@ export default {
     disabled: { control: 'boolean' },
     onChange: { action: 'changed' },
   },
-} as Meta;
+} as Meta<typeof Select>;
 
 const options = [
   { value: 'option1', label: 'Option 1' },

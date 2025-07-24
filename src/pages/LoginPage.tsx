@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { AuthModal } from '@/components/auth/AuthModal';
+import { AuthModal } from '@/components/auth';
 import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (credentials: { email: string; password: string }) => {
+  const handleLogin = async (email: string, password: string) => {
     try {
-      await login(credentials.email, credentials.password);
+      await login(email, password);
       navigate('/');
     } catch (error) {
       console.error('Ошибка входа:', error);
+    }
+  };
+
+  const handleRegister = async (
+    email: string,
+    password: string,
+    role: string,
+    organization: string,
+    department: string,
+    name: string
+  ) => {
+    try {
+      await register(
+        name,
+        email,
+        password,
+        role as any, // Приведение типа, так как Role - enum
+        organization,
+        department
+      );
+      navigate('/profile');
+    } catch (error) {
+      console.error('Ошибка регистрации:', error);
     }
   };
 
@@ -24,10 +46,10 @@ const LoginPage = () => {
       
       <div className={styles.modalWrapper}>
         <AuthModal 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onSubmit={handleSubmit}
-          onSuccess={() => navigate('/profile')}
+          isOpen={true}
+          onClose={() => navigate('/')}
+          onLogin={handleLogin} 
+          onRegister={handleRegister} 
         />
       </div>
     </div>

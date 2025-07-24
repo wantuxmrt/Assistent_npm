@@ -6,9 +6,23 @@ import React, {
   ReactNode,
   useMemo,
 } from 'react';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import darkTheme from './darkTheme';
 import lightTheme from './lightTheme';
 import { Theme, ThemeName } from './themeTypes';
+
+// Функция для адаптации темы к требованиям styled-components
+const adaptTheme = (theme: Theme) => ({
+  ...theme,
+  background: theme.colors.bgColor,
+  text: theme.colors.text,
+  primary: theme.colors.primary,
+  secondary: theme.colors.secondary,
+  error: theme.colors.error,
+  success: theme.colors.success,
+  accent: theme.colors.accent,
+  warning: theme.colors.warning,
+});
 
 interface ThemeContextType {
   theme: Theme;
@@ -21,19 +35,20 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [themeName, setThemeName] = useState<ThemeName>('dark');
 
-  // При монтировании проверить сохраненную тему или системные настройки
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as ThemeName | null;
     const systemPrefersDark = window.matchMedia(
       '(prefers-color-scheme: dark)'
     ).matches;
 
-    setThemeName(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    setThemeName(initialTheme);
+    document.body.setAttribute('data-theme', initialTheme);
   }, []);
 
-  // При изменении темы сохранить в localStorage
   useEffect(() => {
     localStorage.setItem('theme', themeName);
+    document.body.setAttribute('data-theme', themeName);
   }, [themeName]);
 
   const toggleTheme = () => {
@@ -44,11 +59,16 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return themeName === 'light' ? lightTheme : darkTheme;
   }, [themeName]);
 
+  // Создаем адаптированную версию темы
+  const adaptedTheme = useMemo(() => adaptTheme(theme), [theme]);
+
   const value = { theme, themeName, toggleTheme };
 
   return (
     <ThemeContext.Provider value={value}>
-      <div className={`theme-${themeName}`}>{children}</div>
+      <StyledThemeProvider theme={adaptedTheme}>
+        {children}
+      </StyledThemeProvider>
     </ThemeContext.Provider>
   );
 };

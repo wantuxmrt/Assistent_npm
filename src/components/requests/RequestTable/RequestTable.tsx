@@ -1,10 +1,10 @@
 import React from 'react';
 import styles from './RequestTable.module.css';
- import { Request } from '../../../types/api';
+import { Ticket } from '@/types';
 
 interface RequestTableProps {
-  requests: Request[];
-  onRowClick: (request: Request) => void;
+  requests: Ticket[];
+  onRowClick: (request: Ticket) => void;
 }
 
 const RequestTable: React.FC<RequestTableProps> = ({ requests, onRowClick }) => {
@@ -18,7 +18,7 @@ const RequestTable: React.FC<RequestTableProps> = ({ requests, onRowClick }) => 
     });
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: Ticket['status']) => {
     switch (status) {
       case 'new': return 'Новый';
       case 'in-progress': return 'В работе';
@@ -28,7 +28,7 @@ const RequestTable: React.FC<RequestTableProps> = ({ requests, onRowClick }) => 
     }
   };
 
-  const getPriorityText = (priority: string) => {
+  const getPriorityText = (priority: Ticket['priority']) => {
     switch (priority) {
       case 'critical': return 'Критический';
       case 'high': return 'Высокий';

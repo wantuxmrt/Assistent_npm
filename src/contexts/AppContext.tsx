@@ -1,223 +1,165 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, RequestTicket, ProblemCategory, PriorityLevel } from '@/types/app.d';
-import { authAPI, requestsAPI } from '@/services/api';
-import { useLocalStorage } from '@/hooks';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { Priority, TicketSystem, Ticket, User } from '../types';
+import { useAuthContext } from './AuthContext';
 
-// Типы для контекста
-interface AppContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-  tickets: RequestTicket[];
-  categories: Record<PriorityLevel, ProblemCategory>;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: User) => Promise<void>;
-  logout: () => void;
-  createTicket: (ticket: Omit<RequestTicket, 'id'>) => Promise<void>;
-  updateTicket: (id: number, updates: Partial<RequestTicket>) => Promise<void>;
-  clearError: () => void;
-  fetchTickets: () => Promise<void>;
-  getSupportUsers: () => User[];
+interface AppState {
+  currentUser: User | null;
+  requests: Ticket[];
+  users: User[];
+  editingTicketId: number | null;
 }
 
-// Создаем контекст с начальным значением
-const AppContext = createContext<AppContextType | undefined>(undefined);
+interface AppContextType extends AppState {
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  createRequest: (request: Omit<Ticket, 'id'>) => void;
+  updateRequest: (request: Ticket) => void;
+  deleteRequest: (id: number) => void;
+  updateUser: (user: User) => void;
+  setEditingTicket: (id: number | null) => void;
+}
 
-// Провайдер контекста
+const defaultState: AppContextType = {
+  currentUser: null,
+  requests: [],
+  users: [],
+  editingTicketId: null,
+  login: async () => false,
+  logout: () => {},
+  createRequest: () => {},
+  updateRequest: () => {},
+  deleteRequest: () => {},
+  updateUser: () => {},
+  setEditingTicket: () => {},
+};
+
+const AppContext = createContext<AppContextType>(defaultState);
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useLocalStorage<User | null>('user', null);
-  const [tickets, setTickets] = useState<RequestTicket[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Категории проблем (статичные данные)
-  const [categories] = useState<Record<PriorityLevel, ProblemCategory>>({
-    critical: {
-      name: "Авария",
-      icon: "fire",
-      items: [
-        // ... структура категорий как в HTML ...
-      ]
-    },
-    high: {
-      name: "Сбой",
-      icon: "exclamation-triangle",
-      items: [
-        // ... структура категорий ...
-      ]
-    },
-    medium: {
-      name: "Обслуживание",
-      icon: "cogs",
-      items: [
-        // ... структура категорий ...
-      ]
-    },
-    low: {
-      name: "Дополнительно",
-      icon: "ellipsis-h",
-      items: [
-        // ... структура категорий ...
-      ]
-    }
+  const [state, setState] = useState<AppState>({
+    currentUser: null,
+    requests: [],
+    users: [],
+    editingTicketId: null,
   });
 
-  const isAuthenticated = !!user;
+  const { login: authLogin, logout: authLogout } = useAuthContext();
 
-  // Восстановление сессии при загрузке
-  useEffect(() => {
-    const restoreSession = async () => {
-      setIsLoading(true);
-      try {
-        if (user?.token) {
-          const restoredUser = await authAPI.restoreSession(user.token);
-          setUser(restoredUser);
-        }
-      } catch (err) {
-        console.error("Session restore error:", err);
-        logout();
-      } finally {
-        setIsLoading(false);
-      }
+  const login = useCallback(async (email: string, password: string) => {
+    const success = await authLogin(email, password);
+    if (success) {
+      setState(prev => ({ 
+        ...prev, 
+        currentUser: { 
+          id: 1, 
+          name: 'User', 
+          email: 'user@example.com', 
+          role: 'user', 
+          active: true 
+        } 
+      }));
+    }
+    return success;
+  }, [authLogin]);
+
+  const logout = useCallback(() => {
+    authLogout();
+    setState(prev => ({ ...prev, currentUser: null }));
+  }, [authLogout]);
+
+  const createRequest = useCallback((request: Omit<Ticket, 'id'>) => {
+    const newRequest: Ticket = {
+      ...request,
+      id: Date.now(),
+      created: new Date().toISOString(),
+      status: 'new',
+      comments: [],
+      attachments: [],
     };
-
-    restoreSession();
+    setState(prev => ({
+      ...prev,
+      requests: [...prev.requests, newRequest],
+    }));
   }, []);
 
-  // Авторизация
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const userData = await authAPI.login(email, password);
-      setUser(userData);
-    } catch (err: any) {
-      setError(err.message || "Ошибка авторизации");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const updateRequest = useCallback((request: Ticket) => {
+    setState(prev => ({
+      ...prev,
+      requests: prev.requests.map(req => 
+        req.id === request.id ? request : req
+      ),
+    }));
+  }, []);
 
-  // Регистрация
-  const register = async (userData: User) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const newUser = await authAPI.register(userData);
-      setUser(newUser);
-    } catch (err: any) {
-      setError(err.message || "Ошибка регистрации");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const deleteRequest = useCallback((id: number) => {
+    setState(prev => ({
+      ...prev,
+      requests: prev.requests.filter(req => req.id !== id),
+    }));
+  }, []);
 
-  // Выход
-  const logout = () => {
-    authAPI.logout();
-    setUser(null);
-    setTickets([]);
-  };
+  const updateUser = useCallback((user: User) => {
+    setState(prev => ({
+      ...prev,
+      users: prev.users.map(u => 
+        u.id === user.id ? user : u
+      ),
+      currentUser: prev.currentUser?.id === user.id ? user : prev.currentUser
+    }));
+  }, []);
 
-  // Создание заявки
-  const createTicket = async (ticket: Omit<RequestTicket, 'id'>) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      if (!user) throw new Error("Требуется авторизация");
-      const newTicket = await requestsAPI.createTicket({
-        ...ticket,
-        userId: user.id,
-        status: 'new',
-        created: new Date().toISOString(),
-        comments: [],
-        attachments: []
-      });
-      setTickets(prev => [...prev, newTicket]);
-    } catch (err: any) {
-      setError(err.message || "Ошибка создания заявки");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const setEditingTicket = useCallback((id: number | null) => {
+    setState(prev => ({ ...prev, editingTicketId: id }));
+  }, []);
 
-  // Обновление заявки
-  const updateTicket = async (id: number, updates: Partial<RequestTicket>) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const updatedTicket = await requestsAPI.updateTicket(id, updates);
-      setTickets(prev => 
-        prev.map(t => t.id === id ? updatedTicket : t)
-      );
-    } catch (err: any) {
-      setError(err.message || "Ошибка обновления заявки");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Загрузка заявок
-  const fetchTickets = async () => {
-    setIsLoading(true);
-    try {
-      if (!user) throw new Error("Требуется авторизация");
-      const userTickets = await requestsAPI.getUserTickets(user.id);
-      setTickets(userTickets);
-    } catch (err: any) {
-      setError(err.message || "Ошибка загрузки заявок");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Получение пользователей поддержки
-  const getSupportUsers = (): User[] => {
-    // В реальном приложении это бы запрос к API
-    return [
-      // Моковые данные
-      {
-        id: 1,
-        name: "Мария Сидорова",
-        email: "support@mrtexpert.ru",
-        role: "support",
-        avatar: "МС",
-        organization: "org1",
-        department: "dep1"
-      },
-      {
-        id: 2,
-        name: "Иван Петров",
-        email: "admin@mrtexpert.ru",
-        role: "admin",
-        avatar: "ИП",
-        organization: "org1",
-        department: "dep1"
-      }
-    ];
-  };
-
-  // Очистка ошибок
-  const clearError = () => setError(null);
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      users: [
+        { 
+          id: 1, 
+          name: 'Admin', 
+          role: 'admin', 
+          email: 'admin@example.com', 
+          active: true 
+        },
+        { 
+          id: 2, 
+          name: 'User', 
+          role: 'user', 
+          email: 'user@example.com', 
+          active: true 
+        },
+      ],
+      requests: [
+        {
+          id: 1,
+          system: '1c',
+          priority: 'high',
+          category: 'Ошибка',
+          title: 'Проблема с отчетом',
+          description: 'Не формируется отчет по продажам',
+          status: 'new',
+          created: new Date().toISOString(),
+          userId: 2,
+          comments: [],
+          attachments: [],
+        }
+      ]
+    }));
+  }, []);
 
   return (
     <AppContext.Provider
       value={{
-        user,
-        isAuthenticated,
-        isLoading,
-        error,
-        tickets,
-        categories,
+        ...state,
         login,
-        register,
         logout,
-        createTicket,
-        updateTicket,
-        clearError,
-        fetchTickets,
-        getSupportUsers
+        createRequest,
+        updateRequest,
+        deleteRequest,
+        updateUser,
+        setEditingTicket,
       }}
     >
       {children}
@@ -225,14 +167,4 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   );
 };
 
-// Хук для использования контекста
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within AppProvider');
-  }
-  return context;
-};
-
-// Экспорт контекста по умолчанию
-export default AppContext;
+export const useAppContext = () => useContext(AppContext);

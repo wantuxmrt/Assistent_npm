@@ -1,6 +1,6 @@
 import React, { useState, useCallback, ChangeEvent } from 'react';
-import { useAppContext } from '../../../contexts/AppContext';
-import { RequestPriority, RequestSystem } from '../../../types';
+import { useAppContext } from '../../../contexts';
+import { Priority, TicketSystem } from '../../../types';
 import Button from '../../common/Button/Button';
 import Card from '../../common/Card/Card';
 import Tab from '../../common/Tab/Tab';
@@ -21,57 +21,102 @@ type ProblemCategory = {
   }[];
 };
 
-const problemCategories: Record<RequestPriority, ProblemCategory> = {
+const problemCategories: Record<Priority, ProblemCategory> = {
   critical: {
     name: "Авария",
     icon: "fire",
     items: [
-      // ... (как в исходном HTML)
+      {
+        name: "Полное недоступность системы",
+        icon: "server",
+        templateDescription: "Система полностью недоступна для всех пользователей"
+      },
+      {
+        name: "Критическая ошибка",
+        icon: "bug",
+        templateDescription: "Критическая функциональность системы не работает"
+      }
     ]
   },
   high: {
     name: "Сбой",
     icon: "exclamation-triangle",
     items: [
-      // ... (как в исходном HTML)
+      {
+        name: "Частичная недоступность",
+        icon: "server",
+        templateDescription: "Часть функционала системы недоступна"
+      },
+      {
+        name: "Ошибка при работе",
+        icon: "bug",
+        templateDescription: "Система работает с ошибками в неключевых функциях"
+      }
     ]
   },
   medium: {
     name: "Обслуживание",
     icon: "cogs",
     items: [
-      // ... (как в исходном HTML)
+      {
+        name: "Настройка",
+        icon: "sliders-h",
+        templateDescription: "Требуется помощь в настройке системы"
+      },
+      {
+        name: "Консультация",
+        icon: "question-circle",
+        templateDescription: "Требуется консультация по использованию системы"
+      }
     ]
   },
   low: {
     name: "Дополнительно",
     icon: "ellipsis-h",
     items: [
-      // ... (как в исходном HTML)
+      {
+        name: "Запрос информации",
+        icon: "info-circle",
+        templateDescription: "Требуется дополнительная информация по системе"
+      },
+      {
+        name: "Предложение",
+        icon: "lightbulb",
+        templateDescription: "Предложение по улучшению системы"
+      }
     ]
   }
 };
 
 const CreateRequest = () => {
-  const { state, createRequest, updateTicket } = useAppContext();
+  const context = useAppContext();
+  if (!context) return <div>Контекст приложения недоступен</div>;
+  
+  const { 
+    currentUser, 
+    editingTicketId, 
+    createRequest, 
+    updateRequest,
+    setEditingTicket
+  } = context;
+  
   const [step, setStep] = useState(0);
   const [requestData, setRequestData] = useState({
-    system: null as RequestSystem | null,
-    priority: null as RequestPriority | null,
+    system: null as TicketSystem | null,
+    priority: null as Priority | null,
     category: '',
     subcategory: '',
     title: '',
     description: '',
     attachments: [] as string[],
   });
-  const [isEditing, setIsEditing] = useState(false);
 
-  const handleSystemSelect = useCallback((system: RequestSystem) => {
+  const handleSystemSelect = useCallback((system: TicketSystem) => {
     setRequestData(prev => ({ ...prev, system }));
     setStep(1);
   }, []);
 
-  const handlePrioritySelect = useCallback((priority: RequestPriority) => {
+  const handlePrioritySelect = useCallback((priority: Priority) => {
     setRequestData(prev => ({ ...prev, priority }));
     setStep(2);
   }, []);
@@ -93,17 +138,24 @@ const CreateRequest = () => {
       return;
     }
 
-    if (isEditing && state.editingTicketId) {
-      updateTicket({
-        id: state.editingTicketId,
-        ...requestData
-      });
+    if (!currentUser) {
+      alert('Пользователь не авторизован');
+      return;
+    }
+
+    if (editingTicketId) {
+      updateRequest({
+        ...requestData,
+        id: editingTicketId,
+        status: 'new',
+        userId: currentUser.id,
+      } as any);
     } else {
       createRequest({
         ...requestData,
         status: 'new',
-        userId: state.currentUser!.id,
-      });
+        userId: currentUser.id,
+      } as any);
     }
 
     // Reset form
@@ -117,8 +169,8 @@ const CreateRequest = () => {
       attachments: [],
     });
     setStep(0);
-    setIsEditing(false);
-  }, [requestData, isEditing, state.editingTicketId, createRequest, updateTicket, state.currentUser]);
+    setEditingTicket(null);
+  }, [requestData, editingTicketId, createRequest, updateRequest, currentUser, setEditingTicket]);
 
   const handleFileUpload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -137,22 +189,26 @@ const CreateRequest = () => {
           <div className={styles.systemSelection}>
             <h3>Выберите систему</h3>
             <div className={styles.systemGrid}>
-              <Card 
-                className={`${styles.systemCard} ${requestData.system === '1c' ? styles.active : ''}`}
+              <div 
+                className={`${styles.systemCardWrapper} ${requestData.system === '1c' ? styles.active : ''}`}
                 onClick={() => handleSystemSelect('1c')}
               >
-                <i className="fas fa-building"></i>
-                <h4>1С</h4>
-                <p>Бухгалтерия, ЗУП, ERP и другие</p>
-              </Card>
-              <Card 
-                className={`${styles.systemCard} ${requestData.system === 'mis' ? styles.active : ''}`}
+                <Card className={styles.systemCard}>
+                  <i className="fas fa-building"></i>
+                  <h4>1С</h4>
+                  <p>Бухгалтерия, ЗУП, ERP и другие</p>
+                </Card>
+              </div>
+              <div 
+                className={`${styles.systemCardWrapper} ${requestData.system === 'mis' ? styles.active : ''}`}
                 onClick={() => handleSystemSelect('mis')}
               >
-                <i className="fas fa-hospital"></i>
-                <h4>МИС</h4>
-                <p>1G Больница и другие медицинские системы</p>
-              </Card>
+                <Card className={styles.systemCard}>
+                  <i className="fas fa-hospital"></i>
+                  <h4>МИС</h4>
+                  <p>1G Больница и другие медицинские системы</p>
+                </Card>
+              </div>
             </div>
           </div>
         );
@@ -163,22 +219,24 @@ const CreateRequest = () => {
             <h3>Выберите тип проблемы</h3>
             <div className={styles.priorityGrid}>
               {Object.entries(problemCategories).map(([priority, data]) => (
-                <Card
+                <div
                   key={priority}
-                  className={`${styles.priorityCard} ${styles[priority]}`}
-                  onClick={() => handlePrioritySelect(priority as RequestPriority)}
+                  className={`${styles.priorityCardWrapper} ${styles[priority as Priority]}`}
+                  onClick={() => handlePrioritySelect(priority as Priority)}
                 >
-                  <div className={styles.priorityHeader}>
-                    <i className={`fas fa-${data.icon}`}></i>
-                    <h4>{data.name}</h4>
-                  </div>
-                  <ul>
-                    {data.items.slice(0, 3).map((item, idx) => (
-                      <li key={idx}>{item.name}</li>
-                    ))}
-                    {data.items.length > 3 && <li>+{data.items.length - 3} еще...</li>}
-                  </ul>
-                </Card>
+                  <Card className={styles.priorityCard}>
+                    <div className={styles.priorityHeader}>
+                      <i className={`fas fa-${data.icon}`}></i>
+                      <h4>{data.name}</h4>
+                    </div>
+                    <ul>
+                      {data.items.slice(0, 3).map((item, idx) => (
+                        <li key={idx}>{item.name}</li>
+                      ))}
+                      {data.items.length > 3 && <li>+{data.items.length - 3} еще...</li>}
+                    </ul>
+                  </Card>
+                </div>
               ))}
             </div>
           </div>
@@ -195,7 +253,7 @@ const CreateRequest = () => {
           <div className={styles.categorySelection}>
             <h3>Выберите категорию</h3>
             <p>
-              Тип: <span className={styles[requestData.priority!]}>{currentCategory.name}</span>
+              Тип: <span className={requestData.priority ? styles[requestData.priority] : ''}>{currentCategory.name}</span>
             </p>
             
             <div className={styles.categoriesList}>
@@ -246,14 +304,14 @@ const CreateRequest = () => {
       case 3:
         return (
           <div className={styles.detailsForm}>
-            <h3>{isEditing ? 'Редактирование запроса' : 'Детали запроса'}</h3>
+            <h3>{editingTicketId ? 'Редактирование запроса' : 'Детали запроса'}</h3>
             
             <div className={styles.previewCard}>
               <div className={styles.previewHeader}>
                 <span className={styles[requestData.system!]}>
                   {requestData.system === '1c' ? '1С' : 'МИС'}
                 </span>
-                <span className={styles[requestData.priority!]}>
+                <span className={requestData.priority ? styles[requestData.priority] : ''}>
                   {requestData.priority && problemCategories[requestData.priority].name}
                 </span>
               </div>
@@ -344,9 +402,9 @@ const CreateRequest = () => {
             <Button 
               onClick={handleSubmit}
               icon="paper-plane"
-              fullWidth
+              className={styles.fullWidthButton}
             >
-              {isEditing ? 'Сохранить изменения' : 'Отправить запрос'}
+              {editingTicketId ? 'Сохранить изменения' : 'Отправить запрос'}
             </Button>
           </div>
         );
@@ -372,9 +430,8 @@ const CreateRequest = () => {
             active={step === index}
             onClick={() => setStep(index)}
             icon={stepConfig.icon}
-          >
-            {stepConfig.title}
-          </Tab>
+            label={stepConfig.title}
+          />
         ))}
       </div>
       

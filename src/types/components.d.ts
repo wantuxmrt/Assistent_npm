@@ -1,4 +1,4 @@
-import { UserRole, TicketStatus, PriorityLevel, SystemType } from './app';
+import { Role, TicketStatus, Priority, TicketSystem } from './app';
 
 // Common Props
 export interface ButtonProps {
@@ -54,7 +54,7 @@ export interface AuthModalProps {
 export interface UserInfoProps {
   user: {
     name: string;
-    role: UserRole;
+    role: Role;
     avatar: string;
   };
   onLogout: () => void;
@@ -73,8 +73,8 @@ export interface RequestTableProps {
 
 export interface RequestFormProps {
   initialData?: {
-    system: SystemType;
-    priority: PriorityLevel;
+    system: TicketSystem;
+    priority: Priority;
     category: string;
     subcategory?: string;
     title: string;
@@ -96,8 +96,8 @@ export interface AdminPanelProps {
 
 export interface CreateRequestProps {
   step: number;
-  onSystemSelect: (system: SystemType) => void;
-  onPrioritySelect: (priority: PriorityLevel) => void;
+  onSystemSelect: (system: TicketSystem) => void;
+  onPrioritySelect: (priority: Priority) => void;
   onCategorySelect: (category: string, subcategory?: string, template?: string) => void;
   onDetailsSubmit: (data: { title: string; description: string; attachments: string[] }) => void;
   onBack: () => void;
